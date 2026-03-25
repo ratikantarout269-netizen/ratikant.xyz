@@ -126,26 +126,37 @@ document.addEventListener('DOMContentLoaded', () => {
 const contactForm = document.getElementById('contact-form');
 const submitBtn = document.getElementById('submit-btn');
 
-if (contactForm) {
-    emailjs.init({
-      publicKey: "MticGpahh4_zAb7Wg",
-    });
+// EmailJS Contact Form
+document.addEventListener('DOMContentLoaded', () => {
+    const contactForm = document.getElementById('contact-form');
+    const submitBtn = document.getElementById('submit-btn');
 
-    contactForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const originalText = submitBtn.innerText;
-        submitBtn.innerText = 'Sending...';
+    if (contactForm) {
+        // Always block default form submit FIRST — prevents page refresh
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-        emailjs.sendForm('service_mdcgfqs', 'template_l2ho9xr', this)
-            .then(() => {
-                submitBtn.innerText = 'Sent Successfully!';
-                contactForm.reset();
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = 'Sending...';
+
+            try {
+                emailjs.init({ publicKey: "MticGpahh4_zAb7Wg" });
+
+                emailjs.sendForm('service_mdcgfqs', 'template_l2ho9xr', this)
+                    .then(() => {
+                        submitBtn.innerText = 'Sent Successfully!';
+                        contactForm.reset();
+                        setTimeout(() => submitBtn.innerText = originalText, 3000);
+                    }, (error) => {
+                        submitBtn.innerText = 'Error! Try again.';
+                        console.error("EmailJS FAILED:", error);
+                        setTimeout(() => submitBtn.innerText = originalText, 3000);
+                    });
+            } catch (err) {
+                submitBtn.innerText = 'Service unavailable.';
+                console.error("EmailJS not loaded:", err);
                 setTimeout(() => submitBtn.innerText = originalText, 3000);
-            }, (error) => {
-                submitBtn.innerText = 'Error!';
-                console.error("FAILED...", error);
-                setTimeout(() => submitBtn.innerText = originalText, 3000);
-            });
-    });
-}
+            }
+        });
+    }
+});
