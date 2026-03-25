@@ -36,94 +36,90 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// Chatbot Logic
-const chatbotToggle = document.getElementById('chatbot-toggle');
-const chatbotClose = document.getElementById('chatbot-close');
-const chatbotWindow = document.getElementById('chatbot-window');
-const chatbotInput = document.getElementById('chatbot-input');
-const chatbotSend = document.getElementById('chatbot-send');
-const chatbotMessages = document.getElementById('chatbot-messages');
+// Chatbot Logic — wrapped in DOMContentLoaded so all elements exist
+document.addEventListener('DOMContentLoaded', () => {
+    const chatbotToggle = document.getElementById('chatbot-toggle');
+    const chatbotClose = document.getElementById('chatbot-close');
+    const chatbotWindow = document.getElementById('chatbot-window');
+    const chatbotInput = document.getElementById('chatbot-input');
+    const chatbotSend = document.getElementById('chatbot-send');
+    const chatbotMessages = document.getElementById('chatbot-messages');
 
-let chatHistory = [
-    {
-        role: "user",
-        parts: [{ text: "You are an AI assistant built into Ratikant Rout's portfolio website. You must be helpful, extremely concise, and polite. Only answer with 1 to 2 sentences max. You know that he is a talented B.Tech CSE student (2024-2028), among the top 5% of his batch, and creates stunning web apps using HTML, CSS, React, and Node." }]
-    },
-    {
-        role: "model",
-        parts: [{ text: "Got it! I am ready to help visitors learn more about Ratikant concisely." }]
-    }
-];
-
-chatbotToggle.addEventListener('click', () => {
-    chatbotWindow.classList.toggle('active');
-});
-
-chatbotClose.addEventListener('click', () => {
-    chatbotWindow.classList.remove('active');
-});
-
-function addMessage(text, sender) {
-    const msgDiv = document.createElement('div');
-    msgDiv.classList.add('chat-msg', sender === 'user' ? 'user-msg' : 'bot-msg');
-    
-    // Simple markdown to break lines
-    msgDiv.innerHTML = text.replace(/\n/g, '<br>');
-    
-    chatbotMessages.appendChild(msgDiv);
-    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-}
-
-async function handleChat() {
-    const text = chatbotInput.value.trim();
-    if (!text) return;
-
-    addMessage(text, 'user');
-    chatbotInput.value = '';
-
-    chatHistory.push({ role: "user", parts: [{ text }] });
-
-    const loadingId = 'loading-' + Date.now();
-    const loadingDiv = document.createElement('div');
-    loadingDiv.id = loadingId;
-    loadingDiv.classList.add('chat-msg', 'bot-msg');
-    loadingDiv.innerHTML = '<i class="bx bx-dots-horizontal-rounded bx-burst"></i>';
-    chatbotMessages.appendChild(loadingDiv);
-    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-
-    try {
-        const apiKey = "AIzaSyAo0SGSv60YDKm6V3hJjhVi5vNAzINcGYg";
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ contents: chatHistory })
-        });
-
-        const data = await response.json();
-        
-        document.getElementById(loadingId).remove();
-
-        if (data.candidates && data.candidates.length > 0) {
-            const botReply = data.candidates[0].content.parts[0].text;
-            addMessage(botReply, 'model');
-            chatHistory.push({ role: "model", parts: [{ text: botReply }] });
-        } else {
-            addMessage('Sorry, I encountered an error. Try again.', 'model');
+    let chatHistory = [
+        {
+            role: "user",
+            parts: [{ text: "You are an AI assistant built into Ratikant Rout's portfolio website. You must be helpful, extremely concise, and polite. Only answer with 1 to 2 sentences max. You know that he is a talented B.Tech CSE student (2024-2028), among the top 5% of his batch, and creates stunning web apps using HTML, CSS, React, and Node." }]
+        },
+        {
+            role: "model",
+            parts: [{ text: "Got it! I am ready to help visitors learn more about Ratikant concisely." }]
         }
-    } catch (err) {
-        if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
-        addMessage('Connection error. Please try again.', 'model');
-        console.error(err);
-    }
-}
+    ];
 
-chatbotSend.addEventListener('click', handleChat);
-chatbotInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleChat();
+    chatbotToggle.addEventListener('click', () => {
+        chatbotWindow.classList.toggle('active');
+    });
+
+    chatbotClose.addEventListener('click', () => {
+        chatbotWindow.classList.remove('active');
+    });
+
+    function addMessage(text, sender) {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('chat-msg', sender === 'user' ? 'user-msg' : 'bot-msg');
+        msgDiv.innerHTML = text.replace(/\n/g, '<br>');
+        chatbotMessages.appendChild(msgDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    async function handleChat() {
+        const text = chatbotInput.value.trim();
+        if (!text) return;
+
+        addMessage(text, 'user');
+        chatbotInput.value = '';
+
+        chatHistory.push({ role: "user", parts: [{ text }] });
+
+        const loadingId = 'loading-' + Date.now();
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = loadingId;
+        loadingDiv.classList.add('chat-msg', 'bot-msg');
+        loadingDiv.innerHTML = '<i class="bx bx-dots-horizontal-rounded bx-burst"></i>';
+        chatbotMessages.appendChild(loadingDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+        try {
+            const apiKey = "AIzaSyAo0SGSv60YDKm6V3hJjhVi5vNAzINcGYg";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: chatHistory })
+            });
+
+            const data = await response.json();
+            document.getElementById(loadingId).remove();
+
+            if (data.candidates && data.candidates.length > 0) {
+                const botReply = data.candidates[0].content.parts[0].text;
+                addMessage(botReply, 'model');
+                chatHistory.push({ role: "model", parts: [{ text: botReply }] });
+            } else {
+                addMessage('Sorry, I encountered an error. Try again.', 'model');
+            }
+        } catch (err) {
+            if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+            addMessage('Connection error. Please try again.', 'model');
+            console.error(err);
+        }
+    }
+
+    chatbotSend.addEventListener('click', handleChat);
+    chatbotInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleChat();
+    });
 });
 
 // EmailJS Form Integration
